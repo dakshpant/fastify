@@ -15,9 +15,11 @@ export const registerService = async (db: Knex, data: RegisterDTO) => {
     password: hashedPassword,
   });
 
-  const token = generateToken({ id, email: data.email });
-
-  return { token };
+  return {
+    id,
+    name: data.name,
+    email: data.email,
+  }
 };
 
 export const loginService = async (db: Knex, data: LoginDTO) => {
@@ -27,7 +29,7 @@ export const loginService = async (db: Knex, data: LoginDTO) => {
   const isMatch = await comparePassword(data.password, user.password);
   if (!isMatch) throw new Error("INVALID_CREDENTIALS");
 
-  const token = generateToken({ id: user.id, email: user.email });
+  const token = generateToken({ id: user.id });
 
   return { token };
 };

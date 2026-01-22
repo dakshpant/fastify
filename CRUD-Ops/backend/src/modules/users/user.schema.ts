@@ -21,6 +21,8 @@ export const registerSchema = {
   },
 };
 
+//Ond Schemas for ":id routes"
+
 export const readUserSchema = {
   response: {
     200: {
@@ -44,15 +46,11 @@ export const readUserSchema = {
 };
 
 export const getUserSchema = {
-  response: {
-    200: {
-      params: {
-        type: "object",
-        required: ["id"],
-        properties: {
-          id: { type: "number" },
-        },
-      },
+  params: {
+    type: "object",
+    required: ["id"],
+    properties: {
+      id: { type: "number" },
     },
   },
 };
@@ -72,15 +70,57 @@ export const deleteUserSchema = {
 };
 
 export const updateUserSchema = {
-  Response:{
-    200:{
-      params: {
-        type: "object",
-        required: ["id"],
-        properties: {
-          id: { type: "number" },
+  params: {
+    type: "object",
+    required: ["id"],
+    properties: {
+      id: { type: "number" },
+    },
+  },
+};
+
+///me authentication and authorization routes schema
+
+export const getMeSchema = {
+  response: {
+    200: {
+      type: "object",
+      properties: {
+        message: {
+          type: "string",
+        },
+        data: {
+          type: "object",
+          properties: {
+            id: { type: "number" },
+            name: { type: "string" },
+            email: { type: "string" },
+          },
         },
       },
-    }
-  }
+    },
+  },
+};
+
+export const updateMeSchema = {
+  body: {
+    type: "object",
+    properties: {
+      name: { type: "string" },
+      email: { type: "string" },
+      password: { type: "string" },
+    },
+    additionalProperties: false,
+  },
+};
+
+export const deleteMeSchema = {
+  response: {
+    200: {
+      type: "object",
+      properties: {
+        message: { type: "string" },
+      },
+    },
+  },
 };

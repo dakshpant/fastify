@@ -1,5 +1,5 @@
 import { RegisterDTO } from "./user.types.js";
-import knex, { Knex } from "knex";
+import { Knex } from "knex";
 import { hashPassword } from "../../helpers/bcrypt.helper.js";
 
 // export const registerUserService = async (db: Knex, data: RegisterDTO) => {
@@ -46,19 +46,19 @@ export const readUsersService = async (db: Knex) => {
   return getUsers;
 };
 
-export const getUsersService = async (db: Knex, id: number) => {
-  const getUsers = await db("users").where({ id }).first();
+export const getUsersService = async (db: Knex, userId: number) => {
+  const getUsers = await db("users").where({ id: userId }).first();
   return getUsers;
 };
 
-export const deleteUsersService = async (db: Knex, id: number) => {
-  const deleteUsers = await db("users").where({ id }).delete();
+export const deleteUsersService = async (db: Knex, userId: number) => {
+  const deleteUsers = await db("users").where({ id: userId }).delete();
   return deleteUsers;
 };
 
 export const updateUserService = async (
   db: Knex,
-  id: number,
+  userId: number,
   data: Partial<RegisterDTO>,
 ) => {
   const updatedData: any = {};
@@ -70,7 +70,7 @@ export const updateUserService = async (
     updatedData.password = await hashPassword(data.password);
   }
 
-  const updatedRows = await db("users").where({ id }).update(updatedData);
+  const updatedRows = await db("users").where({ id: userId }).update(updatedData);
 
   return updatedRows; 
 };

@@ -3,7 +3,7 @@ import {
   readUsersService,
   getUsersService,
   deleteUsersService,
-  updateUserService
+  updateUserService,
 } from "./user.service.js";
 import { RegisterDTO } from "./user.types.js";
 
@@ -57,13 +57,13 @@ export const readUsersController = async (
   }
 };
 
-export const getUserController = async (
+export const getMeController = async (
   req: FastifyRequest,
   reply: FastifyReply,
 ) => {
   try {
-    const { id } = req.params as { id: number };
-    const user = await getUsersService(req.server.knex, id);
+    const userId = req.user.id;
+    const user = await getUsersService(req.server.knex, userId);
     if (!user) {
       return reply.code(404).send({
         message: "USER_NOT_FOUND",
@@ -81,13 +81,13 @@ export const getUserController = async (
   }
 };
 
-export const deleteUserController = async (
+export const deleteMeController = async (
   req: FastifyRequest,
   reply: FastifyReply,
 ) => {
   try {
-    const { id } = req.params as { id: number };
-    const user = await deleteUsersService(req.server.knex, id);
+    const userId = req.user.id;
+    const user = await deleteUsersService(req.server.knex, userId);
     if (!user) {
       return reply.code(404).send({
         message: "USER_NOT_FOUND",
@@ -105,24 +105,39 @@ export const deleteUserController = async (
   }
 };
 
-export const updateUserController = async (
+export const updateMeController = async (
   req: FastifyRequest,
   reply: FastifyReply,
 ) => {
   try {
-    const { id } = req.params as { id: number };
+    const userId = req.user?.id;
     const body = req.body as Partial<RegisterDTO>;
 
-    const existingUser = await getUsersService(req.server.knex, id);
+    if (!body || Object.keys(body).length === 0) {
+      return reply.code(400).send({
+        message: "NO_FIELDS_TO_UPDATE",
+      });
+    }
+
+    const existingUser = await getUsersService(req.server.knex, userId);
+
     if (!existingUser) {
       return reply.code(404).send({
         message: "USER_NOT_FOUND",
       });
     }
 
-    await updateUserService(req.server.knex, id, body);
+    const updatedRows = await updateUserService(req.server.knex, userId, body);
+    console.log("Updated ROws:",updatedRows);
+    
 
-    const updatedUser = await getUsersService(req.server.knex, id);
+    if (updatedRows === 0) {
+      return reply.code(400).send({
+        message: "NOTHING_UPDATED",
+      });
+    }
+
+    const updatedUser = await getUsersService(req.server.knex, userId);
 
     return reply.code(200).send({
       message: "User updated successfully",
@@ -134,4 +149,3 @@ export const updateUserController = async (
     });
   }
 };
-

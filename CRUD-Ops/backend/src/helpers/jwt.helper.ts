@@ -12,7 +12,7 @@ if (!JWT_SECRET) {
 
 export interface AccessTokenPayload {
   id: number;
-  email: string;
+  // email: string;
 }
 
 export const generateToken = (payload: AccessTokenPayload) => {

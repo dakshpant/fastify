@@ -11,7 +11,7 @@ export const registerController = async (
     const result = await registerService(req.server.knex, body);
 
     return reply.code(201).send({
-      message: "User registered successfully",
+      message: "User registered successfully.Login To continue",
       ...result,
     });
   } catch (error: any) {
