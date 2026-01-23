@@ -1,12 +1,12 @@
-import jwt from "jsonwebtoken"
+import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 
 dotenv.config();
 
+const accessToken = process.env.JWT_SECRET_KEY;
+const refreshToken = process.env.REFRESH_TOKEN_SECRET;
 
-const JWT_SECRET = process.env.JWT_SECRET_KEY ;
-
-if (!JWT_SECRET) {
+if (!accessToken) {
   throw new Error("JWT_SECRET_KEY is not defined");
 }
 
@@ -15,16 +15,26 @@ export interface AccessTokenPayload {
   // email: string;
 }
 
-export const generateToken = (payload: AccessTokenPayload) => {
-  const Token = jwt.sign(payload, JWT_SECRET, {
+export const generateAccessToken = (payload: AccessTokenPayload) => {
+  const Token = jwt.sign(payload, accessToken, {
     expiresIn: "15m",
   });
-    console.log("The toke is",Token);
-  return Token
+  console.log("The toke is", Token);
+  return Token;
 };
 
-export const verifyToken = (token: string): AccessTokenPayload => {
-  return jwt.verify(token, JWT_SECRET) as AccessTokenPayload;
+export const generateRefreshToken = (payload: AccessTokenPayload) => {
+  return jwt.sign(payload, refreshToken, {
+    expiresIn: "1d",
+  });
+};
+
+export const verifyAccessToken = (token: string): AccessTokenPayload => {
+  return jwt.verify(token, accessToken) as AccessTokenPayload;
+};
+
+export const verifyRefreshToken = (token: string): AccessTokenPayload => {
+  return jwt.verify(token, refreshToken) as unknown as AccessTokenPayload;
 };
 
 export const decodeToken = (token: string): AccessTokenPayload => {

@@ -1,6 +1,9 @@
 import { Knex } from "knex";
 import { comparePassword, hashPassword } from "../../helpers/bcrypt.helper.js";
-import { generateToken } from "../../helpers/jwt.helper.js";
+import {
+  generateAccessToken,
+  generateRefreshToken,
+} from "../../helpers/jwt.helper.js";
 import { LoginDTO, RegisterDTO } from "./auth.types.js";
 
 export const registerService = async (db: Knex, data: RegisterDTO) => {
@@ -19,7 +22,7 @@ export const registerService = async (db: Knex, data: RegisterDTO) => {
     id,
     name: data.name,
     email: data.email,
-  }
+  };
 };
 
 export const loginService = async (db: Knex, data: LoginDTO) => {
@@ -29,7 +32,9 @@ export const loginService = async (db: Knex, data: LoginDTO) => {
   const isMatch = await comparePassword(data.password, user.password);
   if (!isMatch) throw new Error("INVALID_CREDENTIALS");
 
-  const token = generateToken({ id: user.id });
+  const accessToken = generateAccessToken({ id: user.id });
+  const refreshToken = generateRefreshToken({ id: user.id });
 
-  return { token };
+  console.log("These are the tokens", accessToken, refreshToken);
+  return { accessToken, refreshToken };
 };

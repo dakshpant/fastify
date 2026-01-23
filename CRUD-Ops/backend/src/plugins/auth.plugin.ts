@@ -1,6 +1,6 @@
 import fp from "fastify-plugin";
 import { FastifyPluginAsync } from "fastify";
-import { verifyToken } from "../helpers/jwt.helper.js";
+import { verifyAccessToken } from "../helpers/jwt.helper.js";
 
 // This is called module augmentation to add a new property to the FastifyRequest interface
 //  It is used to add a new property to the FastifyRequest interface and make it available in the request object
@@ -31,7 +31,7 @@ const authPlugin: FastifyPluginAsync = async (fastify) => {
     }
 
     try {
-      const payload = verifyToken(token);
+      const payload = verifyAccessToken(token);
       request.user = { id: payload.id };
     } catch {
       return reply.code(401).send({ message: "Invalid or expired token" });
