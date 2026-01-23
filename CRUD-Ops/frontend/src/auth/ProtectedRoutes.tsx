@@ -1,10 +1,16 @@
 import { Navigate } from "react-router-dom";
-import { isAuthenticated } from "../auth/auth.utils";
 
-const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
-  if (!isAuthenticated()) {
-    return <Navigate to="/login" />;
+type Props = {
+  children: JSX.Element;
+};
+
+const ProtectedRoute = ({ children }: Props) => {
+  const token = localStorage.getItem("access_token");
+
+  if (!token) {
+    return <Navigate to="/login" replace />;
   }
+
   return children;
 };
 

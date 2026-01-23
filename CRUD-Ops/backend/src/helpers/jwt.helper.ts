@@ -16,9 +16,11 @@ export interface AccessTokenPayload {
 }
 
 export const generateToken = (payload: AccessTokenPayload) => {
-  return jwt.sign(payload, JWT_SECRET, {
+  const Token = jwt.sign(payload, JWT_SECRET, {
     expiresIn: "15m",
   });
+    console.log("The toke is",Token);
+  return Token
 };
 
 export const verifyToken = (token: string): AccessTokenPayload => {

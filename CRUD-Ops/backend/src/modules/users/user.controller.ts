@@ -6,6 +6,7 @@ import {
   updateUserService,
 } from "./user.service.js";
 import { RegisterDTO } from "./user.types.js";
+import { log } from "node:console";
 
 // export const registerController = async (
 //   req: FastifyRequest,
@@ -49,6 +50,7 @@ export const readUsersController = async (
       message: "Users fetched successfully",
       data: users,
     });
+    console.log("User Details:", users);
   } catch (error: any) {
     return reply.code(409).send({
       message: "USER_NOT_FOUND",
@@ -128,8 +130,7 @@ export const updateMeController = async (
     }
 
     const updatedRows = await updateUserService(req.server.knex, userId, body);
-    console.log("Updated ROws:",updatedRows);
-    
+    console.log("Updated ROws:", updatedRows);
 
     if (updatedRows === 0) {
       return reply.code(400).send({
