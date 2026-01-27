@@ -1,63 +1,47 @@
+import { FastifyInstance } from "fastify";
 import { RegisterDTO } from "./user.types.js";
-import { Knex } from "knex";
 import { hashPassword } from "../../helpers/bcrypt.helper.js";
 
-// export const registerUserService = async (db: Knex, data: RegisterDTO) => {
-//   try {
-//     // Log incoming request data
-//     console.log("Register User Service called");
-//     console.log("Incoming data:", data);
-
-//     // Destructure required fields from DTO
-//     const { name, email, password } = data;
-
-//     console.log("Email & Password received:", email, password);
-
-//     const hashedPassword = await hashPassword(password);
-
-//     // console.log("Thsi is hadhed pass", hashedPassword);
-
-//     // Insert user into the database
-//     const insertUser = await db("users").insert({
-//       name,
-//       email,
-//       password: hashedPassword,
-//     });
-
-//     // Knex usually returns inserted row IDs
-//     console.log("User inserted successfully:", insertUser);
-
-//     // Return safe response (never return password)
-//     return {
-//       name,
-//       email,
-//     };
-//   } catch (error) {
-//     // Log full error for debugging
-//     console.error("Error while registering user:", error);
-
-//     // Throw a clean error for controller / route layer
-//     throw new Error("Failed to register user");
-//   }
-// };
-
-export const readUsersService = async (db: Knex) => {
-  const getUsers = await db("users").select("id", "name", "email");
-  return getUsers;
+export const readUsersService = async (fastify: FastifyInstance) => {
+  return fastify.prisma.user.findMany({
+    select: {
+      id: true,
+      name: true,
+      email: true,
+    },
+  });
 };
 
-export const getUsersService = async (db: Knex, userId: number) => {
-  const getUsers = await db("users").where({ id: userId }).first();
-  return getUsers;
+export const getUsersService = async (
+  fastify: FastifyInstance,
+  userId: number,
+) => {
+  return fastify.prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+    },
+  });
 };
 
-export const deleteUsersService = async (db: Knex, userId: number) => {
-  const deleteUsers = await db("users").where({ id: userId }).delete();
-  return deleteUsers;
+export const deleteUsersService = async (
+  fastify: FastifyInstance,
+  userId: number,
+) => {
+  return fastify.prisma.user.delete({
+    where: { id: userId },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+    },
+  });
 };
 
 export const updateUserService = async (
-  db: Knex,
+  fastify: FastifyInstance,
   userId: number,
   data: Partial<RegisterDTO>,
 ) => {
@@ -70,7 +54,13 @@ export const updateUserService = async (
     updatedData.password = await hashPassword(data.password);
   }
 
-  const updatedRows = await db("users").where({ id: userId }).update(updatedData);
-
-  return updatedRows; 
+  return fastify.prisma.user.update({
+    where: { id: userId },
+    data: updatedData,
+    select: {
+      id: true,
+      name: true,
+      email: true,
+    },
+  });
 };

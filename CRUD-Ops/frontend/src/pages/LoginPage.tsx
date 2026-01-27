@@ -32,12 +32,19 @@ const LoginPage = () => {
     setError(null);
 
     try {
-      const data = await api.post("/auth/login", form);
-      const token = data.token;
+      const res = await api.post("/auth/login", form);
 
-      setToken(token); // ✅ store token once
-      navigate("/me"); // ✅ redirect to profile
+      console.log("LOGIN RESPONSE:", res);
+
+      const token = res.accessToken;
+
+      if (!token) throw new Error("NO_TOKEN");
+
+      setToken(token);
+
+      navigate("/me");
     } catch (err: any) {
+      console.error(err);
       setError(err.message || "INVALID_CREDENTIALS");
     } finally {
       setLoading(false);
