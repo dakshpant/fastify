@@ -3,7 +3,6 @@ import { loginService, registerService } from "./auth.service.js";
 import { LoginDTO, RegisterDTO } from "./auth.types.js";
 import {
   generateAccessToken,
-  verifyAccessToken,
   verifyRefreshToken,
 } from "../../helpers/jwt.helper.js";
 
@@ -13,12 +12,12 @@ export const registerController = async (
 ) => {
   try {
     const body = req.body as RegisterDTO;
-    const result = await registerService(req.server.knex, body);
 
-    console.log("User registered : ", result);
+    // 🔑 Prisma now comes from Fastify
+    const result = await registerService(req.server, body);
 
     return reply.code(201).send({
-      message: "User registered successfully.Login To continue",
+      message: "User registered successfully. Login to continue",
       alert: "Redirection TO Login Page!!",
       ...result,
     });
@@ -26,6 +25,7 @@ export const registerController = async (
     if (error.message === "USER_EXISTS") {
       return reply.code(409).send({ message: "User already exists" });
     }
+
     return reply
       .code(500)
       .send({ message: "REGISTER_FAILED", error: error.message });
@@ -40,27 +40,21 @@ export const loginController = async (
     const body = req.body as LoginDTO;
 
     const { accessToken, refreshToken } = await loginService(
-      req.server.knex,
+      req.server,
       body,
     );
 
-    console.log("Login success:", accessToken, refreshToken);
-
     reply.setCookie("refreshToken", refreshToken, {
       httpOnly: true,
-      secure: process.env.Node_ENV === "production",
+      secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
       path: "/",
       maxAge: 1 * 24 * 60 * 60,
     });
 
-    const result = {
-      accessToken,
-    };
-
     return reply.code(200).send({
       message: "Login successful",
-      ...result,
+      accessToken,
     });
   } catch (error) {
     return reply.code(401).send({ message: "INVALID_CREDENTIALS" });
@@ -81,12 +75,10 @@ export const refreshTokenController = async (
 
     const newAccessToken = generateAccessToken({ id: payload.id });
 
-    console.log("Access Token", newAccessToken);
-
     return reply.code(200).send({
       accessToken: newAccessToken,
     });
-  } catch (error: any) {
+  } catch {
     return reply.code(401).send({ message: "INVALID_REFRESH_TOKEN" });
   }
 };
@@ -98,5 +90,6 @@ export const logOutController = async (
   reply.clearCookie("refreshToken", {
     path: "/",
   });
+
   return reply.code(200).send({ message: "LOGOUT_SUCCESS" });
 };
