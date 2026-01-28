@@ -1,6 +1,7 @@
 import fp from "fastify-plugin";
 import { FastifyPluginAsync } from "fastify";
 import { verifyAccessToken } from "../helpers/jwt.helper.js";
+import { AuthError } from "../errors/auth-errors.js";
 
 // This is called module augmentation to add a new property to the FastifyRequest interface
 //  It is used to add a new property to the FastifyRequest interface and make it available in the request object
@@ -20,15 +21,18 @@ const authPlugin: FastifyPluginAsync = async (fastify) => {
 fastify.addHook("preHandler", async (request, reply) => {
   const token = request.cookies.accessToken;
 
-  if (!token) {
-    return reply.code(401).send({ message: "Missing access token" });
-  }
-
+  if (!token) throw new AuthError(
+        "NO_ACCESS_TOKEN",
+        "Access token is missing"
+      );
   try {
     const payload = verifyAccessToken(token);
     request.user = { id: payload.id };
   } catch {
-    return reply.code(401).send({ message: "Invalid or expired token" });
+    throw new AuthError(
+        "INVALID_ACCESS_TOKEN",
+        "Invalid or expired access token"
+      );
   }
 });
 
