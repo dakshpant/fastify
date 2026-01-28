@@ -5,13 +5,14 @@ import {
   generateAccessToken,
   verifyRefreshToken,
 } from "../../helpers/jwt.helper.js";
+import { RegisterInput, LoginInput } from "./auth.schema.js";
 
 export const registerController = async (
-  req: FastifyRequest,
+  req: FastifyRequest<{ Body: RegisterInput }>,
   reply: FastifyReply,
 ) => {
   try {
-    const body = req.body as RegisterDTO;
+    const body = req.body;
 
     // 🔑 Prisma now comes from Fastify
     const result = await registerService(req.server, body);
@@ -33,21 +34,13 @@ export const registerController = async (
 };
 
 export const loginController = async (
-  req: FastifyRequest,
+  req: FastifyRequest<{ Body: LoginInput }>,
   reply: FastifyReply,
 ) => {
   try {
-    const body = req.body as LoginDTO;
+    const body = req.body;
 
     const { accessToken, refreshToken } = await loginService(req.server, body);
-
-    reply.setCookie("refreshToken", refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      path: "/",
-      maxAge: 1 * 24 * 60 * 60,
-    });
 
     reply
       .setCookie("accessToken", accessToken, {
@@ -66,7 +59,6 @@ export const loginController = async (
       });
     return reply.code(200).send({
       message: "Login successful",
-      accessToken,
     });
   } catch (error) {
     return reply.code(401).send({ message: "INVALID_CREDENTIALS" });
@@ -97,7 +89,7 @@ export const refreshTokenController = async (
 
     return reply.code(200).send({
       message: "Access token refreshed",
-      accessToken: newAccessToken
+      accessToken: newAccessToken,
     });
   } catch {
     return reply.code(401).send({ message: "INVALID_REFRESH_TOKEN" });

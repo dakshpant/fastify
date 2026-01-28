@@ -83,7 +83,7 @@ export const updateMeController = async (
 ) => {
   try {
     const userId = req.user.id;
-    const body = req.body as Partial<RegisterDTO>;
+    const body = req.body;
 
     if (!body || Object.keys(body).length === 0) {
       return reply.code(400).send({

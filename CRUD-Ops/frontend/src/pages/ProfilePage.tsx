@@ -20,7 +20,7 @@ const ProfilePage = () => {
   useEffect(() => {
     const fetchMe = async () => {
       try {
-        const res = await api.get("user/me");
+        const res = await api.get("/auth/me");
         setUser(res.data);
       } catch (error: any) {
         setError(error.response.data.message);

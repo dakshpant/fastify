@@ -15,15 +15,15 @@ export const ProtectedUserRoutes: FastifyPluginAsync = async (app) => {
   // auth plugin will protect everything below
   app.register(authPlugin);
   // app.get("/readUser", { schema: readUserSchema }, readUsersController);
-  app.get("/me", { schema: getMeSchema }, getMeController);
-  app.delete(
-    "/deleteMe",
-    { schema: deleteMeSchema },
-    deleteMeController,
-  );
-  app.put(
-    "/updateMe",
-    { schema: updateMeSchema },
-    updateMeController,
-  );
+  // app.get("/me", { schema: getMeSchema }, getMeController);
+  // app.delete(
+  //   "/deleteMe",
+  //   { schema: deleteMeSchema },
+  //   deleteMeController,
+  // );
+  // app.put(
+  //   "/updateMe",
+  //   { schema: updateMeSchema },
+  //   updateMeController,
+  // );
 };

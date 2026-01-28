@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../services/api.services";
-import { setToken } from "../auth/auth.utils";
+//The below is for the local storage token storage
+// import { setToken } from "../auth/auth.utils";
 
 interface LoginFormDTO {
   email: string;
@@ -36,13 +37,15 @@ const LoginPage = () => {
 
       console.log("LOGIN RESPONSE:", res);
 
-      const token = res.accessToken;
+      /**
+       * 
+       *   const token = res.accessToken;
 
       if (!token) throw new Error("NO_TOKEN");
 
       setToken(token);
-
-      navigate("/me");
+       */
+        navigate("/me")
     } catch (err: any) {
       console.error(err);
       setError(err.message || "INVALID_CREDENTIALS");
