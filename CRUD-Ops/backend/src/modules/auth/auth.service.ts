@@ -5,6 +5,8 @@ import {
   generateRefreshToken,
 } from "../../helpers/jwt.helper.js";
 import { LoginDTO, RegisterDTO } from "./auth.types.js";
+import { AuthError } from "../../errors/auth-errors.js";
+import { ValidationError } from "../../errors/validation-error.js";
 
 export const registerService = async (
   fastify: FastifyInstance,
@@ -15,7 +17,12 @@ export const registerService = async (
     where: { email: data.email },
   });
 
-  if (existingUser) throw new Error("USER_EXISTS");
+  if (existingUser) {
+    throw new ValidationError(
+      "USER_EXISTS",
+      "User with this email already exists",
+    );
+  }
 
   // Hash password
   const hashedPassword = await hashPassword(data.password);
@@ -45,10 +52,15 @@ export const loginService = async (
     where: { email: data.email },
   });
 
-  if (!user) throw new Error("INVALID_CREDENTIALS");
+  if (!user)
+    throw new AuthError("INVALID_CREDENTIALS", "Email or pass is incorrect");
 
   const isMatch = await comparePassword(data.password, user.password);
-  if (!isMatch) throw new Error("INVALID_CREDENTIALS");
+  if (!isMatch)
+    throw new AuthError(
+      "INVALID_CREDENTIALS",
+      "Email or password is incorrect",
+    );
 
   const accessToken = generateAccessToken({ id: user.id });
   const refreshToken = generateRefreshToken({ id: user.id });
