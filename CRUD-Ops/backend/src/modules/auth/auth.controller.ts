@@ -39,10 +39,7 @@ export const loginController = async (
   try {
     const body = req.body as LoginDTO;
 
-    const { accessToken, refreshToken } = await loginService(
-      req.server,
-      body,
-    );
+    const { accessToken, refreshToken } = await loginService(req.server, body);
 
     reply.setCookie("refreshToken", refreshToken, {
       httpOnly: true,
@@ -52,6 +49,21 @@ export const loginController = async (
       maxAge: 1 * 24 * 60 * 60,
     });
 
+    reply
+      .setCookie("accessToken", accessToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        path: "/",
+        maxAge: 15 * 60,
+      })
+      .setCookie("refreshToken", refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        path: "/",
+        maxAge: 1 * 24 * 60 * 60,
+      });
     return reply.code(200).send({
       message: "Login successful",
       accessToken,
@@ -75,8 +87,17 @@ export const refreshTokenController = async (
 
     const newAccessToken = generateAccessToken({ id: payload.id });
 
+    reply.setCookie("accessToken", newAccessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      path: "/",
+      maxAge: 15 * 60,
+    });
+
     return reply.code(200).send({
-      accessToken: newAccessToken,
+      message: "Access token refreshed",
+      accessToken: newAccessToken
     });
   } catch {
     return reply.code(401).send({ message: "INVALID_REFRESH_TOKEN" });

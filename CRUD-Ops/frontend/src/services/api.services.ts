@@ -1,35 +1,3 @@
-// const API_URL = import.meta.env.VITE_API_URL;
-
-// export const api = async (
-//   endpoint: string,
-//   options: RequestInit = {}
-// ) => {
-//   const token = localStorage.getItem("access_token");
-
-//   const response = await fetch(`${API_URL}${endpoint}`, {
-//     ...options,
-//     headers: {
-//       "Content-Type": "application/json",
-//       ...(token && { Authorization: `Bearer ${token}` }),
-//       ...options.headers,
-//     },
-//   });
-
-//   let data: any = null;
-//   const text = await response.text();
-
-//   if (text) {
-//     data = JSON.parse(text);
-//   }
-
-//   if (!response.ok) {
-//     throw new Error(data?.message || "API_ERROR");
-//   }
-
-//   return data;
-// };
-
-//With axios
 import axios from "axios";
 
 export const api = axios.create({
@@ -40,21 +8,50 @@ export const api = axios.create({
   withCredentials: true,
 });
 
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("access_token");
+let isRefreshing = false;
+let failedQueue: any[] = [];
 
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
+const processQueue = (error: any) => {
+  failedQueue.forEach(prom => {
+    if (error) prom.reject(error);
+    else prom.resolve(true);
+  });
 
-  return config;
-});
+  failedQueue = [];
+};
 
 api.interceptors.response.use(
   (response) => response.data,
-  (error) => {
-    const message =
-      error.response?.data?.message || "API_ERROR";
-    return Promise.reject(new Error(message));
+
+  async (error) => {
+    const originalRequest = error.config;
+
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        }).then(() => api(originalRequest));
+      }
+
+      originalRequest._retry = true;
+      isRefreshing = true;
+
+      try {
+        await api.post("/auth/refresh");
+
+        processQueue(null);
+        return api(originalRequest);
+      } catch (err) {
+        processQueue(err);
+        window.location.href = "/login";
+        return Promise.reject(err);
+      } finally {
+        isRefreshing = false;
+      }
+    }
+
+    return Promise.reject(
+      new Error(error.response?.data?.message || "API_ERROR")
+    );
   }
 );

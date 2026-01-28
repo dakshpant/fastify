@@ -17,26 +17,21 @@ declare module "fastify" {
 const authPlugin: FastifyPluginAsync = async (fastify) => {
   fastify.decorateRequest("user", null);
 
-  fastify.addHook("preHandler", async (request, reply) => {
-    const authHeader = request.headers.authorization;
+fastify.addHook("preHandler", async (request, reply) => {
+  const token = request.cookies.accessToken;
 
-    if (!authHeader) {
-      return reply.code(401).send({ message: "Missing token" });
-    }
+  if (!token) {
+    return reply.code(401).send({ message: "Missing access token" });
+  }
 
-    const [, token] = authHeader.split(" ");
+  try {
+    const payload = verifyAccessToken(token);
+    request.user = { id: payload.id };
+  } catch {
+    return reply.code(401).send({ message: "Invalid or expired token" });
+  }
+});
 
-    if (!token) {
-      return reply.code(401).send({ message: "Invalid token format" });
-    }
-
-    try {
-      const payload = verifyAccessToken(token);
-      request.user = { id: payload.id };
-    } catch {
-      return reply.code(401).send({ message: "Invalid or expired token" });
-    }
-  });
 };
 
 export default fp(authPlugin);
