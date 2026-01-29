@@ -11,6 +11,7 @@ declare module "fastify" {
   interface FastifyRequest {
     user?: {
       id: number;
+      role: "USER" | "ADMIN";
     };
   }
 }
@@ -18,24 +19,21 @@ declare module "fastify" {
 const authPlugin: FastifyPluginAsync = async (fastify) => {
   fastify.decorateRequest("user", null);
 
-fastify.addHook("preHandler", async (request, reply) => {
-  const token = request.cookies.accessToken;
+  fastify.addHook("preHandler", async (request, reply) => {
+    const token = request.cookies.accessToken;
 
-  if (!token) throw new AuthError(
-        "NO_ACCESS_TOKEN",
-        "Access token is missing"
-      );
-  try {
-    const payload = verifyAccessToken(token);
-    request.user = { id: payload.id };
-  } catch {
-    throw new AuthError(
+    if (!token)
+      throw new AuthError("NO_ACCESS_TOKEN", "Access token is missing");
+    try {
+      const payload = verifyAccessToken(token);
+      request.user = { id: payload.id, role: payload.role };
+    } catch {
+      throw new AuthError(
         "INVALID_ACCESS_TOKEN",
-        "Invalid or expired access token"
+        "Invalid or expired access token",
       );
-  }
-});
-
+    }
+  });
 };
 
 export default fp(authPlugin);

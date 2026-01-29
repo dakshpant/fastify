@@ -1,6 +1,5 @@
 import { FastifyRequest, FastifyReply } from "fastify";
 import { loginService, registerService } from "./auth.service.js";
-import { LoginDTO, RegisterDTO } from "./auth.types.js";
 import {
   generateAccessToken,
   verifyRefreshToken,

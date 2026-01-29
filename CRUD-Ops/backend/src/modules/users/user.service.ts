@@ -1,24 +1,18 @@
 import { FastifyInstance } from "fastify";
 import { RegisterDTO } from "./user.types.js";
 import { hashPassword } from "../../helpers/bcrypt.helper.js";
-import { PrismaClient } from "@prisma/client/extension";
 
-export const readUsersService = async (fastify: FastifyInstance, prisma: PrismaClient) => {
-  return prisma.user.findMany({
+export const readUsersService = async (fastify: FastifyInstance) => {
+  return fastify.prisma.user.findMany({
     select: {
       id: true,
       name: true,
       email: true,
+      role:true,
+      createdAt: true
     },
   });
 };
-
-/**
- * iin the above function, we added prisma as a parameter to ensure that the extended PrismaClient is used.
- * This allows us to leverage any custom methods or extensions defined in our PrismaClient.
- 
- *and below as prisma: PrismaClient is not used so use 
- */
 
 export const getUsersService = async (
   fastify: FastifyInstance,
@@ -30,6 +24,7 @@ export const getUsersService = async (
       id: true,
       name: true,
       email: true,
+      role:true
     },
   });
 };

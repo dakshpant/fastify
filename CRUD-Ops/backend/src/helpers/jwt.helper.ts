@@ -12,6 +12,7 @@ if (!accessToken) {
 
 export interface AccessTokenPayload {
   id: number;
+  role: "USER" | "ADMIN";
   // email: string;
 }
 

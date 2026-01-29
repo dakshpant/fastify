@@ -1,5 +1,5 @@
 import fastify from "fastify";
-import { ProtectedUserRoutes } from "./modules/users/user.routes.js";
+import { UserRoutes } from "./modules/users/user.routes.js";
 import { authRoutes } from "./modules/auth/auth.route.js";
 import cors from "@fastify/cors";
 import cookies from "@fastify/cookie";
@@ -17,6 +17,7 @@ app.register(prismaPlugin);
 app.register(errorHandlerPlugin);
 
 app.register(authRoutes, { prefix: "/api/auth" });
-app.register(ProtectedUserRoutes, { prefix: "/api/user" });
+// app.register(ProtectedUserRoutes, { prefix: "/api/user" });
+app.register(UserRoutes, { prefix: "/api/user" });
 
 export default app;

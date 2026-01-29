@@ -1,29 +1,19 @@
 import { FastifyPluginAsync } from "fastify";
 import {
-  getMeController,
-  deleteMeController,
-  updateMeController,
+  readAllUsersController,
+  getUserByIdController,
+  updateUserByIdController,
+  deleteUserByIdController,
 } from "./user.controller.js";
-import {
-  getMeSchema,
-  deleteMeSchema,
-  updateMeSchema,
-} from "./user.schema.js";
 import authPlugin from "../../plugins/auth.plugin.js";
+import { authorize } from "../../plugins/roleBasedAuth.plugin.js";
 
-export const ProtectedUserRoutes: FastifyPluginAsync = async (app) => {
-  // auth plugin will protect everything below
+export const UserRoutes: FastifyPluginAsync = async (app) => {
   app.register(authPlugin);
-  // app.get("/readUser", { schema: readUserSchema }, readUsersController);
-  // app.get("/me", { schema: getMeSchema }, getMeController);
-  // app.delete(
-  //   "/deleteMe",
-  //   { schema: deleteMeSchema },
-  //   deleteMeController,
-  // );
-  // app.put(
-  //   "/updateMe",
-  //   { schema: updateMeSchema },
-  //   updateMeController,
-  // );
+  app.register(authorize(["ADMIN"]));
+
+  app.get("/", readAllUsersController);
+  app.get("/:id", getUserByIdController);
+  app.put("/:id", updateUserByIdController);
+  app.delete("/:id", deleteUserByIdController);
 };

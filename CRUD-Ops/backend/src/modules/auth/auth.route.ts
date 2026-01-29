@@ -14,6 +14,7 @@ import { registerSchema, loginSchema } from "./auth.schema.js";
 import { updateMeZodSchema } from "../users/user.schema.js";
 import { zodValidate } from "../../helpers/zod.helper.js";
 import authPlugin from "../../plugins/auth.plugin.js";
+import { authorize } from "../../plugins/roleBasedAuth.plugin.js";
 
 export async function authRoutes(app: FastifyInstance) {
   //PUBLIC ROUTES (NO AUTH)
@@ -31,6 +32,7 @@ export async function authRoutes(app: FastifyInstance) {
   //PROTECTED SCOPE
   app.register(async (protectedApp) => {
     protectedApp.register(authPlugin); //plugin applied HERE
+    protectedApp.register(authorize(["USER", "ADMIN"]));
 
     protectedApp.get("/me", getMeController);
 

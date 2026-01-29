@@ -4,13 +4,13 @@ import {
   generateAccessToken,
   generateRefreshToken,
 } from "../../helpers/jwt.helper.js";
-import { LoginDTO, RegisterDTO } from "./auth.types.js";
+import { RegisterInput, LoginInput } from "../auth/auth.schema.js";
 import { AuthError } from "../../errors/auth-errors.js";
 import { ValidationError } from "../../errors/validation-error.js";
 
 export const registerService = async (
   fastify: FastifyInstance,
-  data: RegisterDTO,
+  data: RegisterInput,
 ) => {
   // Check if user already exists
   const existingUser = await fastify.prisma.user.findUnique({
@@ -33,11 +33,13 @@ export const registerService = async (
       name: data.name,
       email: data.email,
       password: hashedPassword,
+      role: "user"
     },
     select: {
       id: true,
       name: true,
       email: true,
+      role: true
     },
   });
 
@@ -46,7 +48,7 @@ export const registerService = async (
 
 export const loginService = async (
   fastify: FastifyInstance,
-  data: LoginDTO,
+  data: LoginInput,
 ) => {
   const user = await fastify.prisma.user.findUnique({
     where: { email: data.email },
@@ -62,8 +64,8 @@ export const loginService = async (
       "Email or password is incorrect",
     );
 
-  const accessToken = generateAccessToken({ id: user.id });
-  const refreshToken = generateRefreshToken({ id: user.id });
+  const accessToken = generateAccessToken({ id: user.id, role: user.role });
+  const refreshToken = generateRefreshToken({ id: user.id, role: user.role });
 
   return { accessToken, refreshToken };
 };

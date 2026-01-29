@@ -1,3 +1,4 @@
+import { Role } from "@prisma/client";
 import { z } from "zod";
 
 export const updateMeZodSchema = z
@@ -109,6 +110,7 @@ export const getMeSchema = {
             id: { type: "number" },
             name: { type: "string" },
             email: { type: "string" },
+            role: { type: "string", enum: ["USER", "ADMIN"] },
           },
         },
       },
