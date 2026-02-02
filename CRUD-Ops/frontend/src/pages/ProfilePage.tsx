@@ -1,171 +1,179 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { api } from "../services/api.services";
+
+type Props = {
+  mode: "self" | "admin";
+};
 
 type User = {
   id: number;
   name: string;
   email: string;
-  password: string;
+  role: "USER" | "ADMIN";
 };
 
-const ProfilePage = () => {
+const ProfilePage = ({ mode }: Props) => {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+
+  const isSelf = mode === "self";
+  const isAdmin = mode === "admin";
+
   const [user, setUser] = useState<User | null>(null);
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
-  const navigate = useNavigate();
-
   useEffect(() => {
-    const fetchMe = async () => {
+    const fetchUser = async () => {
       try {
-        const res = await api.get("/auth/me");
+        const res = isSelf
+          ? await api.get("/auth/me")
+          : await api.get(`/user/${id}`);
+
         setUser(res.data);
-      } catch (error: any) {
-        setError(error.response.data.message);
+      } catch (err: any) {
+        setError(err.message || "Failed to fetch user");
       } finally {
         setLoading(false);
       }
     };
-    fetchMe();
-  }, []);
+
+    fetchUser();
+  }, [isSelf, id]);
 
   const handleUpdate = async () => {
     if (!user) return;
+
     setSaving(true);
     try {
-      await api.put("/user/updateMe", {
-        name: user.name,
-        email: user.email,
-        password: user.password,
-      });
-      alert("Prifile Updates Successfully");
-    } catch (error: any) {
-      alert(error.message);
+      if (isSelf) {
+        await api.put("/auth/me", {
+          name: user.name,
+          email: user.email,
+          ...(password && { password }),
+        });
+      } else {
+        await api.put(`/user/${user.id}`, {
+          name: user.name,
+          email: user.email,
+          role: user.role,
+        });
+      }
+
+      alert("User updated successfully");
+      setPassword("");
     } finally {
       setSaving(false);
     }
   };
-
   const handleDelete = async () => {
-    const ok = window.confirm("Are you sure you want to delete your account?");
+    const ok = window.confirm("Are you sure?");
     if (!ok) return;
-    try {
-      await api.delete("/user/deleteMe");
-      localStorage.removeItem("access_token");
+
+    if (isSelf) {
+      await api.delete("/auth/me");
       navigate("/register");
-    } catch (error: any) {
-      alert(error.message);
+    } else {
+      await api.delete(`/user/${user?.id}`);
+      navigate("/admin");
     }
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem("access_token");
+  const handleLogout = async () => {
+    await api.post("/auth/logout");
     navigate("/login");
   };
 
-  // 🔹 UI states
-  if (loading) {
-    return <p className="text-center mt-10">Loading profile…</p>;
-  }
-
-  if (error) {
-    return <p className="text-center text-red-600">{error}</p>;
-  }
-
+  if (loading) return <p className="text-center mt-10">Loading profile…</p>;
+  if (error) return <p className="text-center text-red-600">{error}</p>;
   if (!user) return null;
+
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div
-        className="
-          bg-white
-          px-12
-          pt-16
-          pb-10
-          shadow-2xl
-          rounded-3xl
-          text-center
-          flex flex-col
-          max-w-md
-          w-full
-        "
-      >
-        {/* Avatar */}
-        <img
-          src="https://github.com/github.png"
-          alt="avatar"
-          className="
-            shadow-xl
-            rounded-3xl
-            h-30
-            w-30
-            mx-auto
-            -mt-25
-            mb-4
-            transition-transform
-            hover:scale-105
-          "
+      <div className="bg-white px-12 pt-16 pb-10 shadow-2xl rounded-3xl w-full max-w-md">
+        <h2 className="text-2xl font-bold text-center mb-6">
+          {isSelf ? "My Profile" : "User Profile"}
+        </h2>
+
+        {/* Name */}
+        <label className="font-bold">Name</label>
+        <input
+          className="w-full border p-2 rounded mb-4"
+          value={user.name}
+          onChange={(e) => setUser({ ...user, name: e.target.value })}
         />
 
-        {/* Editable fields */}
-        <div className="flex flex-col gap-0">
-          <label
-            className="text-bold text-left text-xl font-bold"
-            htmlFor="name"
-          >
-            Name
-          </label>
-          <input
-            className="mt-2  text-center border rounded p-2"
-            value={user.name}
-            onChange={(e) => setUser({ ...user, name: e.target.value })}
-          />
-        </div>
-        <div className="flex flex-col gap-0 my-3 ">
-          <label className="text-left font-bold text-xl" htmlFor="email">
-            Email:
-          </label>
-          <input
-            className="mt-2 text-center border rounded p-2"
-            value={user.email}
-            onChange={(e) => setUser({ ...user, email: e.target.value })}
-          />
-        </div>
+        {/* Email */}
+        <label className="font-bold">Email</label>
+        <input
+          className="w-full border p-2 rounded mb-4"
+          value={user.email}
+          onChange={(e) => setUser({ ...user, email: e.target.value })}
+        />
 
-        <div className="flex flex-col gap-0 my-3 text-center">
-          <label className="text-left font-bold text-xl" htmlFor="Password">
-            Password:
-          </label>
-          <input
-            className="mt-2 text-center border rounded p-2"
-            value={user.password}
-            placeholder="Enter To Update Password"
-            onChange={(e) => setUser({ ...user, password: e.target.value })}
-          />
-        </div>
+        {/* Role (ADMIN ONLY) */}
+        {isAdmin && (
+          <>
+            <label className="font-bold">Role</label>
+            <select
+              className="w-full border p-2 rounded mb-4"
+              value={user.role}
+              onChange={(e) =>
+                setUser({
+                  ...user,
+                  role: e.target.value as "USER" | "ADMIN",
+                })
+              }
+            >
+              <option value="USER">USER</option>
+              <option value="ADMIN">ADMIN</option>
+            </select>
+          </>
+        )}
 
-        {/* Actions */}
-        <button
-          onClick={handleUpdate}
-          disabled={saving}
-          className="mt-6 w-full bg-blue-600 text-white py-2 rounded disabled:opacity-50"
-        >
-          {saving ? "Updating..." : "Update Profile"}
-        </button>
+        {/* Password (SELF ONLY) */}
+        {(isSelf||isAdmin) && (
+          <>
+            <label className="font-bold">New Password</label>
+            <input
+              className="w-full border p-2 rounded mb-4"
+              type="password"
+              placeholder="Enter new password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </>
+        )}
+
+        {/* ACTIONS */}
+        {(isSelf || isAdmin) && (
+          <>
+            <button
+              onClick={handleUpdate}
+              disabled={saving}
+              className="w-full bg-blue-600 text-white py-2 rounded mt-4"
+            >
+              {saving ? "Saving..." : "Update User"}
+            </button>
+
+            <button
+              onClick={handleDelete}
+              className="w-full bg-red-600 text-white py-2 rounded mt-3"
+            >
+              Delete User
+            </button>
+          </>
+        )}
 
         <button
           onClick={handleLogout}
-          className="mt-3 w-full bg-gray-700 text-white py-2 rounded"
+          className="w-full bg-gray-700 text-white py-2 rounded mt-3"
         >
           Logout
-        </button>
-
-        <button
-          onClick={handleDelete}
-          className="mt-3 w-full bg-red-600 text-white py-2 rounded"
-        >
-          Delete Account
         </button>
       </div>
     </div>

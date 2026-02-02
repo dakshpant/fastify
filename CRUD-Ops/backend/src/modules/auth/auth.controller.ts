@@ -101,9 +101,9 @@ export const logOutController = async (
   req: FastifyRequest,
   reply: FastifyReply,
 ) => {
-  reply.clearCookie("refreshToken", {
-    path: "/",
-  });
+  reply
+  .clearCookie("accessToken", { path: "/" })
+  .clearCookie("refreshToken", { path: "/" });
 
   return {
     success: true,

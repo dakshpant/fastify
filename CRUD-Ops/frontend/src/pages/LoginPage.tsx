@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { api } from "../services/api.services";
 //The below is for the local storage token storage
 // import { setToken } from "../auth/auth.utils";
+import { useAuth } from "../auth/AuthContext";
 
 interface LoginFormDTO {
   email: string;
@@ -19,6 +20,7 @@ const LoginPage = () => {
   const [error, setError] = useState<string | null>(null);
 
   const navigate = useNavigate();
+  const { refreshUser } = useAuth();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({
@@ -36,6 +38,7 @@ const LoginPage = () => {
       const res = await api.post("/auth/login", form);
 
       console.log("LOGIN RESPONSE:", res);
+      await refreshUser();
 
       /**
        * 
@@ -45,7 +48,8 @@ const LoginPage = () => {
 
       setToken(token);
        */
-        navigate("/me")
+      console.log("ABOUT TO NAVIGATE TO /me");
+      navigate("/me");
     } catch (err: any) {
       console.error(err);
       setError(err.message || "INVALID_CREDENTIALS");

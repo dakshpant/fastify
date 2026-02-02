@@ -1,29 +1,19 @@
 import { Navigate } from "react-router-dom";
-import { useEffect, useState } from "react";
-import { api } from "../services/api.services";
+import { useAuth } from "./AuthContext";
 
-type Props = {
-  children: JSX.Element;
-};
+const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
+  const { loading, isAuthenticated, user } = useAuth();
 
-const ProtectedRoute = ({ children }: Props) => {
-  const [loading, setLoading] = useState(true);
-  const [allowed, setAllowed] = useState(false);
+  console.log("PROTECTED ROUTE CHECK", {
+    loading,
+    isAuthenticated,
+    user,
+  });
 
-  // const token = localStorage.getItem("access_token");
-  useEffect(() => {
-    api
-      .get("/auth/me") // backend auth check
-      .then(() => setAllowed(true))
-      .catch(() => setAllowed(false))
-      .finally(() => setLoading(false));
-  }, []);
+  if (loading) return <div>Checking authentication...</div>;
 
-  if (loading) {
-    return <div>Checking authentication...</div>;
-  }
-
-  if (!allowed) {
+  if (!isAuthenticated) {
+    console.log("BLOCKED — redirecting to login");
     return <Navigate to="/login" replace />;
   }
 

@@ -1,12 +1,29 @@
-import { ZodSchema } from "zod/v3";
-import { FastifyReply, FastifyRequest } from "fastify";
+import { FastifyRequest } from "fastify";
+import { ZodError, ZodSchema } from "zod";
+import { ValidationError } from "../errors/validation-error.js";
 
-export function zodValidate(schema: ZodSchema) {
-  return async (request: FastifyRequest, reply: FastifyReply) => {
+type ZodSchemas = {
+  body?: ZodSchema;
+  params?: ZodSchema;
+  query?: ZodSchema;
+};
+
+export function zodValidate(schemas: ZodSchemas) {
+  return async (request: FastifyRequest) => {
     try {
-      request.body = await schema.parseAsync(request.body);
+      if (schemas.body) {
+        request.body = schemas.body.parse(request.body);
+      }
+
+      if (schemas.params) {
+        request.params = schemas.params.parse(request.params);
+      }
+
     } catch (error) {
-      reply.code(400).send({ error: "Validation failed", details: error });
+      if (error instanceof ZodError) {
+        throw new ValidationError(error.errors[0].message);
+      }
+      throw error;
     }
   };
 }
