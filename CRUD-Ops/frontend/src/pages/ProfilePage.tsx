@@ -17,14 +17,16 @@ const ProfilePage = ({ mode }: Props) => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
-  const isSelf = mode === "self";
-  const isAdmin = mode === "admin";
-
   const [user, setUser] = useState<User | null>(null);
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+
+  const isSelf = mode === "self";
+  const isAdmin = mode === "admin";
+
+  const isAdminSelfCheck = user?.role === "ADMIN" && isSelf;
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -70,7 +72,11 @@ const ProfilePage = ({ mode }: Props) => {
     }
   };
   const handleDelete = async () => {
-    const ok = window.confirm("Are you sure?");
+    if (isAdminSelfCheck) {
+      alert("Admin users cannot delete their own accounts.");
+      return;
+    }
+    const ok = window.confirm("Confirm To Delete?");
     if (!ok) return;
 
     if (isSelf) {
@@ -90,7 +96,6 @@ const ProfilePage = ({ mode }: Props) => {
   if (loading) return <p className="text-center mt-10">Loading profile…</p>;
   if (error) return <p className="text-center text-red-600">{error}</p>;
   if (!user) return null;
-
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
@@ -136,7 +141,7 @@ const ProfilePage = ({ mode }: Props) => {
         )}
 
         {/* Password (SELF ONLY) */}
-        {(isSelf||isAdmin) && (
+        {(isSelf || isAdmin) && (
           <>
             <label className="font-bold">New Password</label>
             <input
@@ -159,7 +164,10 @@ const ProfilePage = ({ mode }: Props) => {
             >
               {saving ? "Saving..." : "Update User"}
             </button>
-
+          </>
+        )}
+        {!isAdminSelfCheck && (
+          <>
             <button
               onClick={handleDelete}
               className="w-full bg-red-600 text-white py-2 rounded mt-3"

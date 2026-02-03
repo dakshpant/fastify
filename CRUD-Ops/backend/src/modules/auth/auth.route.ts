@@ -4,6 +4,7 @@ import {
   loginController,
   refreshTokenController,
   logOutController,
+  googleCallbackController,
 } from "./auth.controller.js";
 import {
   getMeController,
@@ -28,6 +29,23 @@ export async function authRoutes(app: FastifyInstance) {
 
   app.post("/refresh", refreshTokenController);
   app.post("/logout", logOutController);
+  //Google OAuth Routes
+ app.get("/google", async (_, reply) => {
+  const url =
+    "https://accounts.google.com/o/oauth2/v2/auth?" +
+    new URLSearchParams({
+      client_id: process.env.GOOGLE_CLIENT_ID!,
+      redirect_uri: process.env.GOOGLE_CALLBACK_URL!,
+      response_type: "code",
+      scope: "openid email profile",
+      prompt: "consent",
+    });
+
+  reply.redirect(url);
+});
+
+app.get("/google/callback", googleCallbackController);
+
 
   //PROTECTED SCOPE
   app.register(async (protectedApp) => {

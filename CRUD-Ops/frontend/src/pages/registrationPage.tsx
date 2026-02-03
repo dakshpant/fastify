@@ -30,27 +30,25 @@ export default function RegistrationPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault(); // 🔥 THIS is what stops POST /register
     setLoading(true);
-    setError(null)
+    setError(null);
     try {
       await api.post("/auth/register", form);
       setSuccess(true);
       setLoading(false);
-      
-      let seconds = 5
+
+      let seconds = 5;
       setCountdown(seconds);
       const interval = setInterval(() => {
-        seconds --;
+        seconds--;
         setCountdown(seconds);
 
-        if(seconds === 0){
-          clearInterval(interval)
-          navigate("/login")
+        if (seconds === 0) {
+          clearInterval(interval);
+          navigate("/login");
         }
-      },1000)
+      }, 1000);
 
       console.log("Form data:", JSON.stringify(form, null, 2));
-      
-
     } catch (error: any) {
       setLoading(false);
       setError(error.message);
@@ -106,6 +104,15 @@ export default function RegistrationPage() {
               className="mt-4 border-2 rounded-xl p-1 bg-blue-600 text-white"
             >
               Register
+            </button>
+
+            <button
+              className="mt-4 border-2 rounded-xl p-1 bg-blue-600 text-white disabled:opacity-50 hover:bg-blue-500"
+              onClick={() =>
+                (window.location.href = "http://localhost:4000/api/auth/google")
+              }
+            >
+              Continue with Google
             </button>
           </div>
         </form>

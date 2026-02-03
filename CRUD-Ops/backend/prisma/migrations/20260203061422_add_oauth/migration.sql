@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE `user` ADD COLUMN `provider` ENUM('LOCAL', 'GOOGLE', 'MICROSOFT') NOT NULL DEFAULT 'LOCAL',
+    ADD COLUMN `providerId` VARCHAR(191) NULL,
+    MODIFY `password` VARCHAR(191) NULL;

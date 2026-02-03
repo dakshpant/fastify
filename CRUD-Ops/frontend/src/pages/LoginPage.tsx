@@ -99,6 +99,14 @@ const LoginPage = () => {
           >
             {loading ? "Logging in..." : "Login"}
           </button>
+          <button
+           className="mt-4 border-2 rounded-xl p-1 bg-blue-600 text-white disabled:opacity-50 focus:to-blue-100"
+            onClick={() =>
+              (window.location.href = "http://localhost:4000/api/auth/google")
+            }
+          >
+            Login with Google
+          </button>
         </div>
       </form>
     </div>

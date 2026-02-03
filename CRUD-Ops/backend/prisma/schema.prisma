@@ -12,12 +12,22 @@ enum Role {
   ADMIN
 }
 
+enum AuthProvider {
+  LOCAL
+  GOOGLE
+  MICROSOFT
+}
+
 model User {
-  id        Int      @id @default(autoincrement())
-  name      String
-  email     String   @unique
-  password  String
-  role      Role     @default(USER)
+  id       Int     @id @default(autoincrement())
+  name     String
+  email    String  @unique
+  password String?
+  role     Role    @default(USER)
+
+  provider   AuthProvider @default(LOCAL)
+  providerId String? //Optional pass field
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
